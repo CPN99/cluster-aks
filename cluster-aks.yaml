@@ -1,0 +1,67 @@
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    include:
+    - infrastructure/*
+
+variables:
+- group: AKS-Variables
+- name: environment
+  value: 'Development'
+
+stages:
+- stage: Validation
+  jobs:
+  - job: ValidateInputs
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: AzureCLI@2
+      inputs:
+        azureSubscription: 'AzureServiceConnection'
+        scriptType: 'bash'
+        scriptLocation: 'inlineScript'
+        inlineScript: |
+          echo "Validating inputs..."
+          echo "Subscription: $(SUBSCRIPTION_ID)"
+          echo "Resource Group: $(RESOURCE_GROUP)"
+
+- stage: KeyVaultSetup
+  dependsOn: Validation
+  jobs:
+  - job: ConfigureKeyVault
+    steps:
+    - task: AzureKeyVault@2
+      inputs:
+        azureSubscription: 'AzureServiceConnection'
+        KeyVaultName: 'kv-cpn-cluster'
+        SecretsFilter: '*'
+        RunAsPreJob: true
+
+- stage: DeployToEnvironment
+  dependsOn: KeyVaultSetup
+  jobs:
+  - deployment: Deploy
+    environment: $(environment)
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureCLI@2
+            inputs:
+              azureSubscription: 'AzureServiceConnection'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: |
+                # Déploiement AKS ici
+                az aks create \
+                  --resource-group $(RESOURCE_GROUP) \
+                  --name $(CLUSTER_NAME) \
+                  --node-count 2 \
+                  --enable-managed-identity \
+                  --network-plugin azure \
+                  --vnet-subnet-id $(SUBNET_ID) \
+                  --admin-username $(admin-username) \
+                  --windows-admin-password $(admin-password)
