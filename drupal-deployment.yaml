@@ -1,0 +1,40 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay2  
+  KUBECONFIG: /builds/${CI_PROJECT_PATH}/.kube/config  # Chemin vers le kubeconfig
+  
+before_script:
+  - apk add --no-cache bash curl py3-pip  
+  - pip install --upgrade awscli  # Installer AWS CLI si nécessaire  
+  - mkdir -p ~/.kube  
+  - echo "$KUBE_CONFIG" > $KUBECONFIG  # Variable d'environnement avec le kubeconfig  
+  - export KUBECONTEXT=$(kubectl config current-context)  # Définir le contexte Kubernetes
+
+stages:
+  - build  
+  - deploy
+
+build:
+  stage: build  
+  script:
+    - echo "Building Docker image..."
+    - docker build -t my-drupal-image .
+    - echo "Logging in to Docker Registry..."
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin  
+    - docker push my-drupal-image
+
+deploy:
+  stage: deploy  
+  script:
+    - echo "Deploying to Kubernetes..."
+    - kubectl apply -f drupal-deployment.yaml  # Fichier de déploiement  
+    - kubectl apply -f drupal-service.yaml  # Fichier de service  
+  environment:
+    name: production  
+    url: http://<external-ip-drupal>  # Remplacez par l'IP externe de votre service Drupal  
+  only:
+    - main  # Déployer uniquement lorsque les commits sont sur la branche main
