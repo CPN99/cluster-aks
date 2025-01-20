@@ -55,7 +55,7 @@ stages:
               scriptType: 'bash'
               scriptLocation: 'inlineScript'
               inlineScript: |
-                # Déploiement AKS ici
+                #  AKS ici
                 az aks create \
                   --resource-group $(RESOURCE_GROUP) \
                   --name $(CLUSTER_NAME) \
