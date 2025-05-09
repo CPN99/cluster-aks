@@ -1,0 +1,44 @@
+:
+Si la commande gitlab-runner n'est pas trouvée lors de l'exécution de sudo gitlab-runner register, cela signifie que GitLab Runner n'est pas installé ou que le binaire n'est pas accessible dans votre chemin d'exécution. Voici comment résoudre ce problème :
+
+Étapes pour Installer ou Vérifier GitLab Runner
+Vérifiez l'Installation : Tout d'abord, vérifiez si GitLab Runner est déjà installé en exécutant :
+
+gitlab-runner --version
+Si vous obtenez un message d'erreur indiquant "commande introuvable", cela signifie que GitLab Runner n'est pas installé.
+
+Installation de GitLab Runner : Si GitLab Runner n'est pas installé, vous pouvez l'installer en suivant ces étapes :
+
+Pour Ubuntu/Debian :
+
+# Ajoutez le dépôt GitLab  
+sudo apt-get install -y curl  
+curl -L --output /tmp/gitlab-runner.deb https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64  
+sudo mv /tmp/gitlab-runner.deb /usr/local/bin/gitlab-runner  
+sudo chmod +x /usr/local/bin/gitlab-runner
+
+# Optionnel : Installer le service pour exécuter le runner en tant que service  
+sudo gitlab-runner install  
+sudo gitlab-runner start
+Pour CentOS/RHEL :
+
+# Installez les dépendances  
+sudo yum install -y curl
+
+# Téléchargez et installez GitLab Runner  
+curl -L --output /usr/local/bin/gitlab-runner https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-linux-amd64  
+sudo chmod +x /usr/local/bin/gitlab-runner
+
+# Optionnel : Installer le service pour exécuter le runner en tant que service  
+sudo gitlab-runner install  
+sudo gitlab-runner start
+Assurez-vous que le Binaire est Accessible : Après l'installation, assurez-vous que le chemin vers gitlab-runner est dans votre variable d'environnement PATH. Vous pouvez le faire en exécutant :
+
+which gitlab-runner
+Cela devrait retourner le chemin vers le binaire gitlab-runner. Si ce n'est pas le cas, vérifiez que le fichier a été déplacé correctement et a les bonnes permissions.
+
+Réexécutez la Commande d'Enregistrement : Une fois que GitLab Runner est installé et accessible, essayez à nouveau d'exécuter :
+
+sudo gitlab-runner register
+Conclusion
+En suivant ces étapes, vous devriez être en mesure d'installer GitLab Runner correctement et d'exécuter la commande d'enregistrement sans rencontrer d'erreurs. Si vous avez encore des problèmes, n'hésitez pas à fournir plus de détails, et je serai ravi de vous aider davantage !
